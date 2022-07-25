@@ -1,0 +1,91 @@
+apiVersion: s3.aws.crossplane.io/v1beta1
+kind: Bucket
+metadata:
+  name: test-bucket
+  namespace: crossplane-system
+  annotations:
+    # This will be the actual bucket name. It must be globally unique, so you
+    # probably want to change it before trying to apply this example.
+    crossplane.io/external-name: crossplane-gitops-example-bucket
+spec:
+  forProvider:
+    acl: private
+    locationConstraint: us-east-1
+    publicAccessBlockConfiguration:
+      blockPublicPolicy: true
+    accelerateConfiguration:
+      status: Enabled
+    versioningConfiguration:
+      status: Enabled
+    tagging:
+      tagSet:
+        - key: key1
+          value: val1
+        - key: secondKey
+          value: val2
+        - key: key3
+          value: val3
+    objectLockEnabledForBucket: false
+    serverSideEncryptionConfiguration:
+      rules:
+        - applyServerSideEncryptionByDefault:
+            sseAlgorithm: AES256
+    corsConfiguration:
+      corsRules:
+        - allowedMethods:
+            - "GET"
+          allowedOrigins:
+            - "*"
+          allowedHeaders:
+            - "*"
+          exposeHeaders:
+            - "x-amz-server-side-encryption"
+    lifecycleConfiguration:
+      rules:
+        - status: Enabled
+          filter:
+            prefix: "ola/"
+          expiration:
+            days: 15
+    replicationConfiguration:
+      roleRef:
+        name: somerole
+      rules:
+        - destination:
+            storageClass: STANDARD
+            bucketRef:
+              name: repl-dest
+          deleteMarkerReplication:
+            status: Disabled
+          filter:
+            prefix: ""
+          priority: 0
+          id: rule-1
+          status: Enabled
+  providerConfigRef:
+    name: example
+---
+apiVersion: s3.aws.crossplane.io/v1beta1
+kind: Bucket
+metadata:
+  name: repl-dest
+  namespace: crossplane-system
+  annotations:
+    # This will be the actual bucket name. It must be globally unique, so you
+    # probably want to change it before trying to apply this example.
+    crossplane.io/external-name: crossplane-gitops-repl-dest
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    acl: private
+    locationConstraint: us-east-1
+    paymentConfiguration:
+      payer: BucketOwner
+    serverSideEncryptionConfiguration:
+      rules:
+        - applyServerSideEncryptionByDefault:
+            sseAlgorithm: AES256
+    versioningConfiguration:
+      status: Enabled
+  providerConfigRef:
+    name: example
