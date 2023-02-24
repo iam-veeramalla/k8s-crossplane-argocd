@@ -1,10 +1,13 @@
 ---
-apiVersion: iam.aws.crossplane.io/v1beta1
+apiVersion: appstream.aws.upbound.io/v1beta1
 kind: User
 metadata:
-  name: gitops-test-user
+  annotations:
+    crossplane.io/external-name: user@example.com
+    meta.upbound.io/example-id: appstream/v1beta1/userstackassociation
   labels:
-    example: "true"
+    testing.upbound.io/example-name: example
+  name: gitops-test-user-1
 spec:
   forProvider:
     tags:
@@ -12,3 +15,4 @@ spec:
         value: v1
   providerConfigRef:
     name: default
+
